@@ -1,0 +1,186 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  FIELD_WORKER
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum RelationshipType {
+  HEAD
+  SPOUSE
+  CHILD
+  OTHER
+}
+
+enum SyncStatus {
+  APPLIED
+  CONFLICT
+  DUPLICATE
+  ERROR
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String
+  name         String
+  role         Role
+  isActive     Boolean   @default(true)
+
+  // Field workers are assigned to exactly one area at a time.
+  areaId String?
+  area   Area?   @relation(fields: [areaId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  refreshTokens      RefreshToken[]
+  registeredHouseholds Household[]        @relation("RegisteredBy")
+  recordedAssessments  HealthAssessment[] @relation("RecordedBy")
+
+  @@index([areaId])
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String   // sha256 of the raw refresh token — raw value never stored
+  revoked   Boolean  @default(false)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Area {
+  id   String @id @default(uuid())
+  name String
+  code String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  fieldWorkers User[]
+  households   Household[]
+}
+
+model Household {
+  id            String  @id @default(uuid()) // client-generated on offline create, so id is stable pre-sync
+  householdCode String  @unique
+  address       String
+  latitude      Float?
+  longitude     Float?
+
+  areaId String
+  area   Area   @relation(fields: [areaId], references: [id])
+
+  registeredById String?
+  registeredBy   User?   @relation("RegisteredBy", fields: [registeredById], references: [id])
+
+  // Optimistic concurrency for sync conflict detection.
+  version Int @default(1)
+  // Soft delete / tombstone so offline deletions can still sync.
+  deletedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members HouseholdMember[]
+
+  @@index([areaId])
+  @@index([updatedAt])
+}
+
+model HouseholdMember {
+  id           String           @id @default(uuid())
+  householdId  String
+  household    Household        @relation(fields: [householdId], references: [id])
+  name         String
+  age          Int
+  gender       Gender
+  relationship RelationshipType
+
+  version   Int       @default(1)
+  deletedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  assessments HealthAssessment[]
+
+  @@index([householdId])
+  @@index([updatedAt])
+}
+
+model HealthAssessment {
+  id       String          @id @default(uuid())
+  memberId String
+  member   HouseholdMember @relation(fields: [memberId], references: [id])
+
+  recordedById String?
+  recordedBy   User?   @relation("RecordedBy", fields: [recordedById], references: [id])
+
+  temperatureC            Float?
+  hasFever                Boolean @default(false)
+  hasCough                Boolean @default(false)
+  hasBreathingDifficulty  Boolean @default(false)
+  bloodPressureSystolic   Int?
+  bloodPressureDiastolic  Int?
+  notes                   String?
+
+  // Trigger condition for the BullMQ job: fever + breathing difficulty,
+  // or a manual flag, marks an assessment urgent (see health-assessments.service).
+  isUrgent Boolean @default(false)
+
+  version   Int       @default(1)
+  deletedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([memberId])
+  @@index([updatedAt])
+}
+
+// Idempotency ledger for POST /sync/push — one row per clientChangeId,
+// so a retried/duplicate sync request is a no-op replay of the stored result.
+model SyncLog {
+  id              String     @id @default(uuid())
+  clientChangeId  String     @unique
+  userId          String
+  entityType      String
+  entityId        String
+  status          SyncStatus
+  resultSnapshot  Json?
+  createdAt       DateTime   @default(now())
+
+  @@index([userId])
+}
+
+// Written by the BullMQ worker when an urgent assessment is processed;
+// read by the admin dashboard as a simple in-app notification feed.
+model ActivityLog {
+  id                String   @id @default(uuid())
+  type              String
+  message            String
+  relatedEntityType String?
+  relatedEntityId   String?
+  isRead            Boolean  @default(false)
+  createdAt         DateTime @default(now())
+
+  @@index([createdAt])
+}
