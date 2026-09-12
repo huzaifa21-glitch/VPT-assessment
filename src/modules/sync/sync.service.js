@@ -106,11 +106,13 @@ const syncService = {
     const results = [];
 
     for (const change of changes) {
-      // Idempotency: a clientChangeId already recorded means this exact
-      // change was processed before (client retry / duplicate network send)
-      // — replay the stored result rather than re-applying it.
+      // Idempotency: a clientChangeId already recorded as APPLIED/CONFLICT
+      // means this exact change already mutated data — replay that result
+      // rather than re-applying it. An ERROR means nothing was actually
+      // applied, so there's nothing to "duplicate" — it must be retried,
+      // not replayed forever.
       const existingLog = await prisma.syncLog.findUnique({ where: { clientChangeId: change.clientChangeId } });
-      if (existingLog) {
+      if (existingLog && existingLog.status !== 'ERROR') {
         results.push({
           clientChangeId: change.clientChangeId,
           status: existingLog.status,
@@ -126,8 +128,12 @@ const syncService = {
         const { conflict, entity } = await applyChange(user, change);
         const status = conflict ? 'CONFLICT' : 'APPLIED';
 
-        await prisma.syncLog.create({
-          data: {
+        // upsert, not create — a retried change that previously errored
+        // already has a SyncLog row for this clientChangeId; this updates
+        // it in place instead of colliding with the unique constraint.
+        await prisma.syncLog.upsert({
+          where: { clientChangeId: change.clientChangeId },
+          create: {
             clientChangeId: change.clientChangeId,
             userId: user.id,
             entityType: change.entityType,
@@ -135,13 +141,15 @@ const syncService = {
             status,
             resultSnapshot: entity,
           },
+          update: { status, resultSnapshot: entity },
         });
 
         results.push({ clientChangeId: change.clientChangeId, status, serverEntity: entity });
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Unknown error';
-        await prisma.syncLog.create({
-          data: {
+        await prisma.syncLog.upsert({
+          where: { clientChangeId: change.clientChangeId },
+          create: {
             clientChangeId: change.clientChangeId,
             userId: user.id,
             entityType: change.entityType,
@@ -149,6 +157,7 @@ const syncService = {
             status: 'ERROR',
             resultSnapshot: { message },
           },
+          update: { status: 'ERROR', resultSnapshot: { message } },
         });
         results.push({ clientChangeId: change.clientChangeId, status: 'ERROR', message });
       }

@@ -22,6 +22,19 @@ async function main() {
     create: { name: 'North District', code: 'AREA-001' },
   });
   console.log(`Seeded area: ${area.name} (${area.code})`);
+    const additionalAreas = [
+    { name: 'South District', code: 'AREA-002' },
+    { name: 'West District', code: 'AREA-003' },
+    { name: 'East District', code: 'AREA-004' },
+  ];
+  for (const areaData of additionalAreas) {
+    const created = await prisma.area.upsert({
+      where: { code: areaData.code },
+      update: {},
+      create: areaData,
+    });
+    console.log(`Seeded area: ${created.name} (${created.code})`);
+  }
 
   const fieldWorkerEmail = 'fieldworker1@healthsurvey.local';
   const fieldWorkerPassword = 'FieldWorker123!';

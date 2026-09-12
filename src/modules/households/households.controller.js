@@ -5,10 +5,20 @@ const { ForbiddenError } = require('../../common/errors/app-error');
 const householdsController = {
   async list(req, res) {
     const query = req.query;
-    // A field worker's list is implicitly scoped to their own area regardless
-    // of what areaId (if any) they pass — enforced here, not trusted from input.
-    const areaId = req.user.role === 'FIELD_WORKER' ? req.user.areaId || undefined : query.areaId;
-    const result = await householdsService.list({ ...query, areaId });
+
+    if (req.user.role === 'FIELD_WORKER') {
+      if (!req.user.areaId) {
+        // Not assigned to an area yet — must see nothing, not "everything".
+        // Falling through to an unfiltered query would return all areas.
+        return res
+          .status(200)
+          .json({ items: [], total: 0, page: query.page, pageSize: query.pageSize });
+      }
+      const result = await householdsService.list({ ...query, areaId: req.user.areaId });
+      return res.status(200).json(result);
+    }
+
+    const result = await householdsService.list(query);
     res.status(200).json(result);
   },
 
