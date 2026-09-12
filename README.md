@@ -1,6 +1,6 @@
 # Community Health Field Survey — Backend
 
-Backend for the take-home assignment: field workers collect household/health data offline via a
+Backend for VPT assignment: field workers collect household/health data offline via a
 mobile app; a web app lets a Super Admin manage field workers and review what's been collected.
 This repo is the **backend only** — a Node.js/Express API, a Postgres database (via Prisma), Redis
 caching, and a BullMQ background worker.

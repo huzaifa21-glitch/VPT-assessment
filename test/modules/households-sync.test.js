@@ -2,7 +2,7 @@
 // Mock the Prisma singleton and the dashboard cache-invalidation call so this
 // test exercises only the conflict-detection logic in households.service,
 // with no real database or Redis connection.
-vi.mock('../../src/prisma/client', () => ({
+vi.spyOn('../../src/prisma/client', () => ({
   prisma: {
     household: {
       findUnique: vi.fn(),
@@ -11,7 +11,7 @@ vi.mock('../../src/prisma/client', () => ({
     },
   },
 }));
-vi.mock('../../src/modules/dashboard/dashboard.service', () => ({
+vi.spyOn('../../src/modules/dashboard/dashboard.service', () => ({
   dashboardService: { invalidate: vi.fn() },
 }));
 

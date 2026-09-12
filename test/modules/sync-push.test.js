@@ -1,5 +1,5 @@
 
-vi.mock('../../src/prisma/client', () => ({
+vi.spyOn('../../src/prisma/client', () => ({
   prisma: {
     syncLog: { findUnique: vi.fn(), create: vi.fn() },
     household: { findUnique: vi.fn() },
@@ -7,17 +7,17 @@ vi.mock('../../src/prisma/client', () => ({
     healthAssessment: { findUnique: vi.fn() },
   },
 }));
-vi.mock('../../src/modules/households/households.service', () => ({
+vi.spyOn('../../src/modules/households/households.service', () => ({
   householdsService: {
     applySyncCreate: vi.fn(),
     applySyncUpdate: vi.fn(),
     applySyncDelete: vi.fn(),
   },
 }));
-vi.mock('../../src/modules/household-members/members.service', () => ({
+vi.spyOn('../../src/modules/household-members/members.service', () => ({
   membersService: { applySyncCreate: vi.fn(), applySyncUpdate: vi.fn(), applySyncDelete: vi.fn() },
 }));
-vi.mock('../../src/modules/health-assessments/assessments.service', () => ({
+vi.spyOn('../../src/modules/health-assessments/assessments.service', () => ({
   assessmentsService: { applySyncCreate: vi.fn(), applySyncUpdate: vi.fn(), applySyncDelete: vi.fn() },
 }));
 
