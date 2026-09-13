@@ -2,9 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Animated, Easing, View, Text, StyleSheet } from 'react-native';
 import { colors } from './theme';
 
-// A small rotating-ring spinner built on RN's core Animated API — no extra
-// dependency needed. Use inline (small, e.g. inside a button) or fullscreen
-// (centered, with an optional label) for a whole-screen loading state.
+
 export function Loader({ label, size = 36, color = colors.accent, trackColor = '#e0e7ff', fullscreen = false }) {
   const spin = useRef(new Animated.Value(0)).current;
 

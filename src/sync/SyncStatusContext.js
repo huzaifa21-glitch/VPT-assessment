@@ -17,9 +17,7 @@ export function SyncStatusProvider({ children }) {
     setCounts({ ...pendingCounts, conflict });
   }, []);
 
-  // The single entry point every screen/button calls. Guarded so overlapping
-  // triggers (e.g. a manual tap right as connectivity comes back) collapse
-  // into one run instead of racing.
+  
   const triggerSync = useCallback(async () => {
     if (syncingRef.current) return { ok: true, skipped: true };
     syncingRef.current = true;

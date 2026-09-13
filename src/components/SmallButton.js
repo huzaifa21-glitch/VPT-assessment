@@ -1,9 +1,6 @@
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { colors } from './theme';
 
-// A compact, properly-tappable button — for places a full-width
-// PrimaryButton doesn't fit (a status bar, a header row). Real background,
-// real padding, real touch target — not a plain text link pretending to be one.
 export function SmallButton({ title, onPress, disabled, variant = 'primary' }) {
   const isSecondary = variant === 'secondary';
   return (

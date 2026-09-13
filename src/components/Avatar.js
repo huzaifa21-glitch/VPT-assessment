@@ -9,8 +9,7 @@ function getInitials(name) {
   return (first + last).toUpperCase();
 }
 
-// Simple initials-in-a-circle avatar — there's no profile photo feature,
-// so this is just enough to say "you're logged in as ___" at a glance.
+
 export function Avatar({ name, size = 40 }) {
   return (
     <View style={[styles.circle, { width: size, height: size, borderRadius: size / 2 }]}>

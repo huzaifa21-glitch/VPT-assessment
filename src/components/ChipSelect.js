@@ -1,9 +1,7 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { colors } from './theme';
 
-// A row of tappable chips — used instead of a native <Picker> for short,
-// fixed option lists (gender, relationship, area). Fewer dependencies, and
-// arguably nicer to tap on a touchscreen than a dropdown.
+
 export function ChipSelect({ label, options, value, onChange, error }) {
   return (
     <View style={styles.container}>

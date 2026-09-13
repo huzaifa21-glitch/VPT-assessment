@@ -24,8 +24,7 @@ const screenOptions = {
 export function RootNavigator() {
   const { user, initializing } = useAuth();
 
-  // App.js already shows a fullscreen loader before AuthProvider finishes
-  // its initial check, so this should be brief/invisible in practice.
+
   if (initializing) return null;
 
   if (!user) {
@@ -38,8 +37,7 @@ export function RootNavigator() {
     );
   }
 
-  // SyncStatusProvider (network listener + initial sync) only runs while
-  // logged in — it mounts fresh on login and tears down cleanly on logout.
+ 
   return (
     <SyncStatusProvider>
       <NavigationContainer>

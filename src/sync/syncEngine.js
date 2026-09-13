@@ -44,10 +44,7 @@ function toChangePayload(entityType, row) {
   };
 }
 
-// Builds the push batch in dependency order — a brand-new household and a
-// brand-new member of it might both be queued in the same sync, and the
-// backend applies `changes` strictly in the array's order, so households
-// must be listed before members, and members before assessments.
+
 async function buildChangeBatch() {
   const [households, members, assessments] = await Promise.all([
     householdsRepo.listPendingForPush(),
@@ -76,9 +73,7 @@ async function buildChangeBatch() {
   return changes;
 }
 
-// Pushes every locally queued change, then reconciles each result back onto
-// the local row it came from (matched by clientChangeId → entityId).
-// Batches of up to 200 at a time, matching the backend's per-request limit.
+
 async function push() {
   const allChanges = await buildChangeBatch();
   if (allChanges.length === 0) return { pushed: 0, applied: 0, conflicts: 0, errors: 0 };
@@ -112,9 +107,7 @@ async function push() {
   return { pushed: allChanges.length, applied, conflicts, errors };
 }
 
-// Pulls everything changed since the last successful pull and applies it —
-// upsertFromServer() on each repo already refuses to overwrite a row that
-// has an unsynced local edit, so this never silently clobbers local work.
+
 async function pull() {
   const since = await getMeta(LAST_PULLED_AT_KEY);
   const data = await api.syncPull(since || undefined);
@@ -131,11 +124,7 @@ async function pull() {
   };
 }
 
-// The one function screens actually call: push first (so local work reaches
-// the server as soon as possible), then pull (so this device also picks up
-// anything that changed elsewhere). Safe to call repeatedly/concurrently —
-// callers are expected to no-op while a previous run is still in flight
-// (see useSyncStatus's `syncing` guard).
+
 export async function runSync() {
   try {
     const pushResult = await push();
@@ -162,8 +151,7 @@ export async function getPendingCounts() {
   };
 }
 
-// Conflicts sit outside listPendingForPush's ('pending','error') filter —
-// they're paused, waiting on the user, not something the next push retries.
+
 export async function getConflictCount() {
   const db = await getDb();
   const rows = await db.getAllAsync(

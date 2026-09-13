@@ -3,9 +3,6 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-nativ
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from './theme';
 
-// Same as before, except: passing secureTextEntry now automatically adds a
-// show/hide eye icon — the field itself decides whether to actually mask the
-// text (based on the toggle), so callers don't do anything differently.
 export function TextField({ label, error, secureTextEntry, style, ...props }) {
   const [visible, setVisible] = useState(false);
   const isPasswordField = !!secureTextEntry;

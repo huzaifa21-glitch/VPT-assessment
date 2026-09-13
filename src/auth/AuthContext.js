@@ -32,9 +32,7 @@ export function AuthProvider({ children }) {
       throw new Error('This app is for Field Worker accounts only.');
     }
     await setTokens(data);
-    // The login response's `user` is intentionally minimal (no nested area
-    // object) — fetch the full profile so the assigned area name is correct
-    // immediately, not just after the next app restart.
+
     const fullUser = await api.me();
     setUser(fullUser);
   }
@@ -44,8 +42,7 @@ export function AuthProvider({ children }) {
     try {
       if (refreshToken) await api.logout(refreshToken);
     } catch {
-      // Clear the local session regardless of whether the server call
-      // succeeded — including while offline, logout should never get "stuck".
+     
     }
     await clearTokens();
     setUser(null);

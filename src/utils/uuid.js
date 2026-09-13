@@ -1,6 +1,4 @@
-// A lightweight RFC-4122-ish v4 UUID generator. We don't need cryptographic
-// randomness here — these ids just need to be unique enough to identify a
-// record created offline before the server has ever seen it.
+
 export function uuid() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;

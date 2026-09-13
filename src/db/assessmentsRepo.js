@@ -10,10 +10,7 @@ import {
   fieldsForResolveKeepMine,
 } from './syncableRecord';
 
-// Mirrors the backend's rule (assessments.service.js) so the field worker
-// sees an accurate "Urgent" hint immediately, offline, before the server has
-// ever confirmed it — the server recomputes this authoritatively from the
-// same inputs once the record syncs, and that value wins on APPLIED.
+
 function computeLocalIsUrgent({ hasFever, hasBreathingDifficulty, flagForReview }) {
   return (hasFever && hasBreathingDifficulty) || flagForReview ? 1 : 0;
 }

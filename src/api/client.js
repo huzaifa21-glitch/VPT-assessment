@@ -5,9 +5,7 @@ const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'http://10.0.2.2:4000/a
 const ACCESS_TOKEN_KEY = 'hs_access_token';
 const REFRESH_TOKEN_KEY = 'hs_refresh_token';
 
-// expo-secure-store wraps the platform keychain (iOS Keychain / Android
-// Keystore) — a meaningfully safer place for tokens than plain storage,
-// and the standard choice for Expo apps.
+
 export async function getTokens() {
   const [accessToken, refreshToken] = await Promise.all([
     SecureStore.getItemAsync(ACCESS_TOKEN_KEY),
@@ -42,11 +40,7 @@ async function refreshAccessToken() {
   return data.accessToken;
 }
 
-// Same shape as the web app's api/client.js: attach the bearer token, retry
-// once after a silent refresh on 401, surface a clean error message otherwise.
-// The one RN-specific difference is that fetch failing outright (no response
-// at all) means "offline" — callers use isOffline(err) to tell that apart
-// from a real server error.
+
 async function request(path, { method = 'GET', body, skipAuth = false, _retried = false } = {}) {
   const { accessToken } = await getTokens();
   const headers = { 'Content-Type': 'application/json' };

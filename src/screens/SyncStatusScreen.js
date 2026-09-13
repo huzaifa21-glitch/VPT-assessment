@@ -9,9 +9,7 @@ import { EmptyState } from '../components/EmptyState';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { colors } from '../components/theme';
 
-// Pulls every not-yet-synced row across all three tables into one flat list
-// for review — this is the "global" half of the sync indicator; the colored
-// badge on each card elsewhere in the app is the "per-record" half.
+
 async function loadOutstanding() {
   const db = await getDb();
   const households = await db.getAllAsync(

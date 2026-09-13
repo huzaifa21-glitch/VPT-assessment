@@ -2,9 +2,7 @@ import * as SQLite from 'expo-sqlite';
 
 let dbPromise = null;
 
-// One shared connection for the whole app. expo-sqlite's modern API is
-// promise-based (openDatabaseAsync/execAsync/runAsync/getAllAsync), unlike
-// the older callback-based WebSQL-style API from a few years ago.
+
 export function getDb() {
   if (!dbPromise) {
     dbPromise = SQLite.openDatabaseAsync('healthsurvey.db');
@@ -12,14 +10,7 @@ export function getDb() {
   return dbPromise;
 }
 
-// Every syncable table shares the same "sync columns":
-//   syncStatus         'synced' | 'pending' | 'conflict' | 'error'
-//   pendingOperation   'CREATE' | 'UPDATE' | 'DELETE' | NULL
-//   baseVersion        the server version this pending change was queued against
-//   pendingChangeId    stable id reused across retries of the SAME queued change,
-//                      so a repeated push of it is idempotent on the backend
-//   conflictServerSnapshot   JSON of the server's copy, set only when syncStatus='conflict'
-//   lastSyncError      human-readable message from the last failed push attempt
+
 export async function initDatabase() {
   const db = await getDb();
 
@@ -98,10 +89,7 @@ export async function initDatabase() {
   return db;
 }
 
-// Wipes all local domain data (not the schema) — used on logout so the next
-// login starts clean instead of showing the previous field worker's queued
-// changes. Never call this without confirming there's nothing unsynced the
-// user still needs (see HouseholdListScreen's logout handler).
+
 export async function resetLocalDatabase() {
   const db = await getDb();
   await db.execAsync(`

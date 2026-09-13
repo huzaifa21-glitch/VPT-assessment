@@ -1,5 +1,4 @@
-// One shared palette/spacing so every screen and component pulls from the
-// same values instead of scattering hex codes everywhere.
+
 export const colors = {
   bg: '#f8fafc',
   card: '#ffffff',
