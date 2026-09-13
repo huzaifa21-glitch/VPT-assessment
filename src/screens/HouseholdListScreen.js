@@ -28,19 +28,14 @@ export function HouseholdListScreen({ navigation }) {
     setLoading(false);
   }, [user?.areaId]);
 
-  // Reload every time this screen gains focus — covers returning from the
-  // add/edit form.
+
   useFocusEffect(
     useCallback(() => {
       load();
     }, [load]),
   );
 
-  // ALSO reload whenever a sync finishes — the very first sync after login
-  // is what actually pulls households down into local storage, and it runs
-  // in the background while this screen is already mounted and focused, so
-  // focus-based reloading alone misses it. lastSyncAt changes every time
-  // triggerSync() completes (see SyncStatusContext), so this catches that.
+
   useEffect(() => {
     load();
   }, [lastSyncAt]);
@@ -85,7 +80,7 @@ export function HouseholdListScreen({ navigation }) {
           <View style={styles.identityText}>
             <Text style={styles.userName} numberOfLines={1}>
               {user?.name || 'Field worker'}
-               {user?.email || 'Field worker'}
+               {/* {user?.email || 'Field worker'} */}
             </Text>
             <Text style={styles.areaName} numberOfLines={1}>
               {user?.area?.name || 'Unassigned area'}

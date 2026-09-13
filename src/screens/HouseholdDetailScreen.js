@@ -34,9 +34,7 @@ export function HouseholdDetailScreen({ route, navigation }) {
     }, [load]),
   );
 
-  // Also reload whenever a sync completes — an edit's "Pending" badge should
-  // flip to "Synced" as soon as the push actually succeeds, not only when
-  // the user leaves and returns to this screen.
+ 
   useEffect(() => {
     load();
   }, [lastSyncAt]);
