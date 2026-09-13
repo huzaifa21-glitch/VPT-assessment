@@ -1,9 +1,4 @@
-// One-off script to change the EXISTING super admin's login credentials
-// without touching anything else in the database. Running `npm run seed`
-// again would NOT do this — seed.js uses upsert with update: {} so it never
-// overwrites a row that already exists (that's intentional, so re-seeding is
-// always safe to run without resetting real data). This script is the
-// deliberate, explicit way to actually change an existing admin's login.
+
 require('dotenv/config');
 const bcrypt = require('bcrypt');
 const { PrismaClient } = require('@prisma/client');

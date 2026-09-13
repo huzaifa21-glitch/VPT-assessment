@@ -3,9 +3,7 @@ const { NotFoundError } = require('../../common/errors/app-error');
 const { urgentAssessmentQueue } = require('../../jobs/queues');
 const { dashboardService } = require('../dashboard/dashboard.service');
 
-// Trigger condition for the background job (documented in README too):
-// an assessment is "urgent" if fever + breathing difficulty co-occur, or the
-// field worker manually flags it for review.
+
 function computeIsUrgent(input) {
   return Boolean((input.hasFever && input.hasBreathingDifficulty) || input.flagForReview);
 }
@@ -22,7 +20,7 @@ async function enqueueUrgentJobIfNeeded(assessmentId, memberId, wasUrgent, isUrg
       memberName: member ? member.name : 'Unknown',
       reason: 'fever+breathing-difficulty-or-manual-flag',
     },
-    { jobId: `urgent-${assessmentId}` }, // stable id => re-triggering the same assessment dedupes
+    { jobId: `urgent-${assessmentId}` }, 
   );
 }
 

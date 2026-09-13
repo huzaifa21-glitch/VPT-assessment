@@ -59,9 +59,6 @@ const authService = {
     };
   },
 
-  // Refresh-token rotation: the presented token is verified, matched against
-  // its stored hash, and revoked as it's exchanged for a new pair. A stolen
-  // refresh token that gets reused after rotation will fail (already revoked).
   async refresh(refreshToken) {
     let payload;
     try {
@@ -91,8 +88,7 @@ const authService = {
     return { accessToken, refreshToken: newRefreshToken };
   },
 
-  // "Logout" = revoke the refresh token server-side. The (short-lived) access
-  // token already in flight simply expires naturally within JWT_ACCESS_EXPIRES_IN.
+
   async logout(refreshToken) {
     try {
       const payload = jwt.verify(refreshToken, env.jwtRefreshSecret);
@@ -101,7 +97,7 @@ const authService = {
         data: { revoked: true },
       });
     } catch {
-      // Already invalid/expired — logout is idempotent either way.
+      
     }
   },
 };

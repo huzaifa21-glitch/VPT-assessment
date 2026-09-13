@@ -6,8 +6,7 @@ function notFoundHandler(req, res) {
   res.status(404).json({ error: { code: 'NOT_FOUND', message: `No route for ${req.method} ${req.path}` } });
 }
 
-// Single place that turns any thrown error into a consistent JSON response.
-// Route handlers just `throw` — they never build their own error payloads.
+
 function errorHandler(err, req, res, _next) {
   if (err instanceof AppError) {
     res.status(err.statusCode).json({

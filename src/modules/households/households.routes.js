@@ -9,8 +9,7 @@ const householdsRouter = Router();
 
 householdsRouter.use(authenticate);
 
-// Both roles hit the same routes — the controller/service layer narrows
-// results and checks ownership per-request rather than branching per-role routes.
+
 householdsRouter.get('/', validate(listHouseholdsQuerySchema, 'query'), asyncHandler(householdsController.list));
 householdsRouter.get('/:id', asyncHandler(householdsController.getById));
 householdsRouter.post('/', validate(createHouseholdSchema), asyncHandler(householdsController.create));

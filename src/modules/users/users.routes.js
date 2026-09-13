@@ -19,7 +19,6 @@ usersRouter.use(authenticate);
 usersRouter.get('/me', asyncHandler(usersController.me));
 
 // Everything below is admin-only: managing other users is explicitly
-// out of scope for a field worker, enforced here (not in the frontend).
 usersRouter.get(
   '/field-workers',
   authorize('SUPER_ADMIN'),

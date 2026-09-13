@@ -1,9 +1,9 @@
 # Community Health Field Survey — Backend
 
-Backend for the take-home assignment: field workers collect household/health data offline via a
-mobile app; a web app lets a Super Admin manage field workers and review what's been collected.
-This repo is the **backend only** — a Node.js/Express API, a Postgres database (via Prisma), Redis
-caching, and a BullMQ background worker.
+Field workers collect household/health data offline via a mobile app; a web app 
+lets a Super Admin manage field workers and review what's been collected.
+This repo is the **backend only** — a Node.js/Express API, a Postgres 
+database (via Prisma), Redis caching, and a BullMQ background worker.
 
 ## Tech stack & why
 
@@ -13,54 +13,8 @@ caching, and a BullMQ background worker.
 - **Redis** — used for (a) BullMQ's queue storage and (b) caching dashboard stats.
 - **BullMQ** — background job queue, processed by a worker process kept separate from the API.
 - **JWT (access + refresh)** — see Authentication below.
-- **Zod** — request validation.
 - **Vitest** — test runner.
 
-## Project layout
-
-```
-.
-├── prisma/
-│   ├── schema.prisma      # database schema (source of truth)
-│   └── seed.js            # creates the super admin + sample data
-├── src/
-│   ├── app.js             # Express app: middleware + route mounting
-│   ├── server.js          # HTTP server entry point (the API process)
-│   ├── worker.js           # BullMQ worker entry point (a SEPARATE process)
-│   ├── config/env.js       # reads & validates environment variables
-│   ├── prisma/client.js    # shared PrismaClient instance
-│   ├── redis/              # shared ioredis client + a small cache-aside helper
-│   ├── jobs/               # BullMQ queue definition + the urgent-assessment processor
-│   ├── common/
-│   │   ├── errors/         # AppError hierarchy (BadRequest, Unauthorized, Forbidden, ...)
-│   │   ├── middleware/      # authenticate, authorize, validate, error-handler
-│   │   └── utils/           # asyncHandler, assertAreaAccess
-│   └── modules/             # one folder per resource: auth, users, areas, households,
-│                             # household-members, health-assessments, sync, dashboard
-│                             # each with routes.js -> controller.js -> service.js (+ schema.js)
-├── test/                    # vitest tests, mirrors src/ layout
-├── docker-compose.yml       # local Postgres + Redis (optional — see "Running the backend" below)
-├── Dockerfile               # containerizes the API itself (optional)
-├── .env.example
-└── vitest.config.js
-```
-
-Every module follows the same request flow:
-
-```
-routes.js → middleware (authenticate, authorize, validate) → controller.js → service.js → Prisma
-```
-
-Reusable pieces used across every module, so logic isn't repeated per route:
-- `asyncHandler(fn)` — wraps async handlers so a thrown/rejected error reaches Express's error
-  middleware instead of crashing the process.
-- `validate(schema, target)` — a Zod-validation middleware factory (`target` is `'body'`, `'query'`,
-  or `'params'`).
-- `authenticate` — verifies the JWT access token, attaches `req.user = { id, role, areaId }`.
-- `authorize(...roles)` — rejects the request with `403` if `req.user.role` isn't in the allowed list.
-- `assertAreaAccess(user, resourceAreaId)` — the single place that decides whether a field worker
-  is allowed to touch a given household/member/assessment (admins always pass).
-- `errorHandler` — turns any thrown error (or a known Prisma error) into one consistent JSON shape.
 
 ## What's implemented
 
@@ -85,13 +39,12 @@ are in the "Design notes" section further down — read that if you want the *wh
 
 ## Running the backend
 
-You have **two ways to get Postgres + Redis** — pick whichever is easier for you. Everything else
+Pick whichever is easier for you. Everything else
 (installing Node deps, running migrations, starting the API) is identical either way.
 
 ### Option A — Docker Compose (runs Postgres + Redis on your machine)
 
-Requires [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running
-(the whale icon in your system tray/menu bar should say "Engine running", not "stopped").
+Requires [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running.
 
 ```bash
 docker compose up -d
@@ -150,22 +103,10 @@ Printed to the console by `npm run seed`, and also documented here:
 | Role         | Email                              | Password          |
 |--------------|-------------------------------------|--------------------|
 | Super Admin  | `admin@local.com`                   | `Admin1234`        |
-| Field Worker | `fieldworker1@healthsurvey.local`   | `FieldWorker123!`  |
+| Field Worker | `test1@gmail.com`                   | `Pass1234!`        |
 
 (Override the super admin's via `SEED_SUPER_ADMIN_EMAIL` / `SEED_SUPER_ADMIN_PASSWORD` in `.env`.)
 
-Note: `npm run seed` is safe to re-run at any time — it uses `upsert` and never overwrites
-a row that already exists, so it will **not** change the super admin's credentials if that
-account was already created with different ones. To actually change an *existing* super
-admin's email/password (without touching anything else in the database), run:
-
-```bash
-npm run update-admin
-```
-
-This updates `prisma/update-admin-credentials.js`'s hardcoded `NEW_EMAIL`/`NEW_PASSWORD` onto
-whichever user currently has the `SUPER_ADMIN` role. Edit those two constants in that file
-first if you want different credentials than the ones above.
 
 ### Tests
 
@@ -239,12 +180,6 @@ server version, the change is **not applied** — the response is `CONFLICT` wit
 copy, and it's up to the client to reconcile (re-show the user the current state, let them redo
 their edit as a fresh change against the new version).
 
-### Offline deletions
-
-All deletes are soft (`deletedAt` timestamp, not a removed row). A queued `DELETE` follows the same
-version-check as an update; if the record's already deleted, it's a no-op (idempotent replay); if
-someone edited it since the client last saw it, it comes back as a `CONFLICT` rather than silently
-deleting data someone just changed.
 
 ### Caching
 
@@ -263,11 +198,4 @@ edge case). Jobs retry 3 times with exponential backoff; failures are logged wit
 The worker (`src/worker.js`) is a separate process from the API (`src/server.js`) — a slow or
 failing job never blocks HTTP requests.
 
-## Trade-offs / what I'd do with more time
 
-- No field-level merge for conflicts — version conflicts are surfaced, not auto-resolved.
-- No rate limiting on `/auth/login`.
-- No refresh-token-reuse detection (flagging all of a user's tokens if a revoked one is replayed).
-- No pagination on `/sync/pull` — fine at this scale, would need chunking for a very large area.
-- Minimal logging/tracing (just `morgan` + `console`).
-- The web (React admin) and mobile (React Native field-worker) apps aren't part of this repo/branch.

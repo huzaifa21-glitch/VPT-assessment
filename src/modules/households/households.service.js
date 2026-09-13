@@ -73,9 +73,7 @@ const householdsService = {
     return deleted;
   },
 
-  // --- Sync-path variants: these are the only place version conflicts are
-  // decided, so both the household and other entity services follow the same
-  // shape and the sync module doesn't reimplement this logic per entity. ---
+ 
 
   async applySyncCreate(data) {
     const existing = await prisma.household.findUnique({ where: { id: data.id } });

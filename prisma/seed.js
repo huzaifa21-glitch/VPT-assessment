@@ -16,28 +16,47 @@ async function main() {
   });
   console.log(`Seeded super admin: ${email} / ${password}`);
 
-  const area = await prisma.area.upsert({
-    where: { code: 'AREA-001' },
-    update: {},
-    create: { name: 'North District', code: 'AREA-001' },
-  });
-  console.log(`Seeded area: ${area.name} (${area.code})`);
+  const areaDefs = [
+    { name: 'North District', code: 'AREA-001' },
+    { name: 'East District', code: 'AREA-002' },
+    { name: 'South District', code: 'AREA-003' },
+    { name: 'West District', code: 'AREA-004' },
+  ];
+  const areas = {};
+  for (const def of areaDefs) {
+    const area = await prisma.area.upsert({
+      where: { code: def.code },
+      update: {},
+      create: def,
+    });
+    areas[area.name] = area;
+    console.log(`Seeded area: ${area.name} (${area.code})`);
+  }
 
-  const fieldWorkerEmail = 'fieldworker1@healthsurvey.local';
-  const fieldWorkerPassword = 'FieldWorker123!';
-  const fieldWorker = await prisma.user.upsert({
-    where: { email: fieldWorkerEmail },
-    update: {},
-    create: {
-      email: fieldWorkerEmail,
-      passwordHash: await bcrypt.hash(fieldWorkerPassword, 12),
-      name: 'Sample Field Worker',
-      role: 'FIELD_WORKER',
-      areaId: area.id,
-      isActive: true,
-    },
-  });
-  console.log(`Seeded field worker: ${fieldWorkerEmail} / ${fieldWorkerPassword}`);
+  const testWorkerDefs = [
+    { email: 'test1@gmail.com', name: 'Test Worker One', areaName: 'North District' },
+    { email: 'test2@gmail.com', name: 'Test Worker Two', areaName: 'South District' },
+  ];
+  const testWorkerPassword = 'Pass1234';
+  const testWorkerPasswordHash = await bcrypt.hash(testWorkerPassword, 12);
+
+  const seededWorkers = [];
+  for (const def of testWorkerDefs) {
+    const worker = await prisma.user.upsert({
+      where: { email: def.email },
+      update: {},
+      create: {
+        email: def.email,
+        passwordHash: testWorkerPasswordHash,
+        name: def.name,
+        role: 'FIELD_WORKER',
+        areaId: areas[def.areaName].id,
+        isActive: true,
+      },
+    });
+    seededWorkers.push(worker);
+    console.log(`Seeded field worker: ${def.email} / ${testWorkerPassword} (${def.areaName})`);
+  }
 
   const household = await prisma.household.upsert({
     where: { householdCode: 'HH-0001' },
@@ -45,8 +64,8 @@ async function main() {
     create: {
       householdCode: 'HH-0001',
       address: '12 Sample Street, North District',
-      areaId: area.id,
-      registeredById: fieldWorker.id,
+      areaId: areas['North District'].id,
+      registeredById: seededWorkers[0].id,
     },
   });
 
@@ -74,7 +93,7 @@ async function main() {
       hasCough: false,
       hasBreathingDifficulty: false,
       notes: 'Sample baseline assessment',
-      recordedById: fieldWorker.id,
+      recordedById: seededWorkers[0].id,
     },
   });
 

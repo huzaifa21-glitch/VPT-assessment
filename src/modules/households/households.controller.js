@@ -8,8 +8,7 @@ const householdsController = {
 
     if (req.user.role === 'FIELD_WORKER') {
       if (!req.user.areaId) {
-        // Not assigned to an area yet — must see nothing, not "everything".
-        // Falling through to an unfiltered query would return all areas.
+        
         return res
           .status(200)
           .json({ items: [], total: 0, page: query.page, pageSize: query.pageSize });
