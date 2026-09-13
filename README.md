@@ -1,6 +1,6 @@
 # Community Health Field Survey — Backend
 
-Backend for VPT assignment: field workers collect household/health data offline via a
+Backend for the take-home assignment: field workers collect household/health data offline via a
 mobile app; a web app lets a Super Admin manage field workers and review what's been collected.
 This repo is the **backend only** — a Node.js/Express API, a Postgres database (via Prisma), Redis
 caching, and a BullMQ background worker.
@@ -149,10 +149,23 @@ Printed to the console by `npm run seed`, and also documented here:
 
 | Role         | Email                              | Password          |
 |--------------|-------------------------------------|--------------------|
-| Super Admin  | `admin@healthsurvey.local`          | `ChangeMe123!`     |
+| Super Admin  | `admin@local.com`                   | `Admin1234`        |
 | Field Worker | `fieldworker1@healthsurvey.local`   | `FieldWorker123!`  |
 
 (Override the super admin's via `SEED_SUPER_ADMIN_EMAIL` / `SEED_SUPER_ADMIN_PASSWORD` in `.env`.)
+
+Note: `npm run seed` is safe to re-run at any time — it uses `upsert` and never overwrites
+a row that already exists, so it will **not** change the super admin's credentials if that
+account was already created with different ones. To actually change an *existing* super
+admin's email/password (without touching anything else in the database), run:
+
+```bash
+npm run update-admin
+```
+
+This updates `prisma/update-admin-credentials.js`'s hardcoded `NEW_EMAIL`/`NEW_PASSWORD` onto
+whichever user currently has the `SUPER_ADMIN` role. Edit those two constants in that file
+first if you want different credentials than the ones above.
 
 ### Tests
 

@@ -12,6 +12,7 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
     "seed": "node prisma/seed.js",
+    "update-admin": "node prisma/update-admin-credentials.js",
     "test": "vitest run",
     "test:watch": "vitest"
   },

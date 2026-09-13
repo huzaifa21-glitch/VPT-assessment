@@ -1,29 +1,26 @@
-
-vi.spyOn('../../src/prisma/client', () => ({
-  prisma: {
-    syncLog: { findUnique: vi.fn(), create: vi.fn() },
-    household: { findUnique: vi.fn() },
-    householdMember: { findUnique: vi.fn() },
-    healthAssessment: { findUnique: vi.fn() },
-  },
-}));
-vi.spyOn('../../src/modules/households/households.service', () => ({
-  householdsService: {
-    applySyncCreate: vi.fn(),
-    applySyncUpdate: vi.fn(),
-    applySyncDelete: vi.fn(),
-  },
-}));
-vi.spyOn('../../src/modules/household-members/members.service', () => ({
-  membersService: { applySyncCreate: vi.fn(), applySyncUpdate: vi.fn(), applySyncDelete: vi.fn() },
-}));
-vi.spyOn('../../src/modules/health-assessments/assessments.service', () => ({
-  assessmentsService: { applySyncCreate: vi.fn(), applySyncUpdate: vi.fn(), applySyncDelete: vi.fn() },
-}));
-
 const { prisma } = require('../../src/prisma/client');
 const { householdsService } = require('../../src/modules/households/households.service');
 const { syncService } = require('../../src/modules/sync/sync.service');
+
+// Same approach as households-sync.test.js: spy on the real singletons rather
+// than vi.mock() (which doesn't reliably intercept CommonJS require()).
+let syncLogFindUniqueSpy;
+let syncLogUpsertSpy;
+let householdFindUniqueSpy;
+let applySyncCreateSpy;
+let applySyncUpdateSpy;
+
+beforeEach(() => {
+  syncLogFindUniqueSpy = vi.spyOn(prisma.syncLog, 'findUnique');
+  syncLogUpsertSpy = vi.spyOn(prisma.syncLog, 'upsert').mockResolvedValue({});
+  householdFindUniqueSpy = vi.spyOn(prisma.household, 'findUnique');
+  applySyncCreateSpy = vi.spyOn(householdsService, 'applySyncCreate');
+  applySyncUpdateSpy = vi.spyOn(householdsService, 'applySyncUpdate');
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 const admin = { id: 'admin-1', role: 'SUPER_ADMIN', areaId: null };
 
@@ -37,13 +34,9 @@ const baseChange = {
   clientTimestamp: new Date().toISOString(),
 };
 
-beforeEach(() => {
-  vi.clearAllMocks();
-});
-
 describe('syncService.push — idempotency', () => {
   it('replays the stored result for a clientChangeId that was already processed', async () => {
-    prisma.syncLog.findUnique.mockResolvedValue({
+    syncLogFindUniqueSpy.mockResolvedValue({
       status: 'APPLIED',
       resultSnapshot: { id: baseChange.entityId, address: 'Addr' },
     });
@@ -51,12 +44,12 @@ describe('syncService.push — idempotency', () => {
     const results = await syncService.push(admin, [baseChange]);
 
     expect(results[0].status).toBe('APPLIED');
-    expect(householdsService.applySyncCreate).not.toHaveBeenCalled();
+    expect(applySyncCreateSpy).not.toHaveBeenCalled();
   });
 
   it('applies a new change and records it in the sync log for future idempotency', async () => {
-    prisma.syncLog.findUnique.mockResolvedValue(null);
-    householdsService.applySyncCreate.mockResolvedValue({
+    syncLogFindUniqueSpy.mockResolvedValue(null);
+    applySyncCreateSpy.mockResolvedValue({
       conflict: false,
       entity: { id: baseChange.entityId },
     });
@@ -64,14 +57,14 @@ describe('syncService.push — idempotency', () => {
     const results = await syncService.push(admin, [baseChange]);
 
     expect(results[0].status).toBe('APPLIED');
-    expect(prisma.syncLog.create).toHaveBeenCalledOnce();
+    expect(syncLogUpsertSpy).toHaveBeenCalledOnce();
   });
 });
 
 describe('syncService.push — per-change isolation', () => {
   it('does not let one failing change block the rest of the batch', async () => {
-    prisma.syncLog.findUnique.mockResolvedValue(null);
-    householdsService.applySyncCreate
+    syncLogFindUniqueSpy.mockResolvedValue(null);
+    applySyncCreateSpy
       .mockRejectedValueOnce(new Error('boom'))
       .mockResolvedValueOnce({ conflict: false, entity: { id: 'ok' } });
 
@@ -88,10 +81,10 @@ describe('syncService.push — per-change isolation', () => {
   });
 
   it('reports CONFLICT when the entity service detects a stale baseVersion', async () => {
-    prisma.syncLog.findUnique.mockResolvedValue(null);
+    syncLogFindUniqueSpy.mockResolvedValue(null);
     const updateChange = { ...baseChange, operation: 'UPDATE', baseVersion: 3 };
-    prisma.household.findUnique.mockResolvedValue({ id: updateChange.entityId, areaId: 'area-1' });
-    householdsService.applySyncUpdate.mockResolvedValue({
+    householdFindUniqueSpy.mockResolvedValue({ id: updateChange.entityId, areaId: 'area-1' });
+    applySyncUpdateSpy.mockResolvedValue({
       conflict: true,
       entity: { id: updateChange.entityId, version: 4 },
     });
