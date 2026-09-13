@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { Badge } from '../components/Badge';
 import { EmptyState } from '../components/EmptyState';
+import { Spinner } from '../components/Spinner';
 
 const emptyForm = { name: '', email: '', password: '', areaId: '' };
 
@@ -14,6 +15,12 @@ export function FieldWorkersPage() {
   const [form, setForm] = useState(emptyForm);
   const [formError, setFormError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  // Tracks which worker rows currently have an update in flight (status
+  // toggle or area reassignment), so each row can show its own spinner and
+  // disable itself — without this, a slow request looks identical to a
+  // broken click, which invites the user to click again and fire a second
+  // (possibly conflicting) request.
+  const [pendingWorkerIds, setPendingWorkerIds] = useState(() => new Set());
 
   async function load() {
     setLoading(true);
@@ -53,20 +60,43 @@ export function FieldWorkersPage() {
     }
   }
 
-  async function handleToggleStatus(worker) {
-    await api.setFieldWorkerStatus(worker.id, !worker.isActive);
-    await load();
+  function withPending(workerId, fn) {
+    return async (...args) => {
+      setPendingWorkerIds((prev) => new Set(prev).add(workerId));
+      try {
+        await fn(...args);
+      } finally {
+        setPendingWorkerIds((prev) => {
+          const next = new Set(prev);
+          next.delete(workerId);
+          return next;
+        });
+      }
+    };
   }
 
-  async function handleAssignArea(worker, areaId) {
-    // The API only supports assigning to a real area, not clearing one —
-    // selecting "Unassigned" again on an already-unassigned worker is a no-op.
-    if (!areaId) return;
-    await api.assignFieldWorkerArea(worker.id, areaId);
-    await load();
-  }
+  const handleToggleStatus = (worker) =>
+    withPending(worker.id, async () => {
+      await api.setFieldWorkerStatus(worker.id, !worker.isActive);
+      await load();
+    })();
 
-  if (loading) return <p className="text-sm text-slate-500">Loading field workers…</p>;
+  const handleAssignArea = (worker, areaId) =>
+    withPending(worker.id, async () => {
+      // The API only supports assigning to a real area, not clearing one —
+      // selecting "Unassigned" again on an already-unassigned worker is a no-op.
+      if (!areaId) return;
+      await api.assignFieldWorkerArea(worker.id, areaId);
+      await load();
+    })();
+
+  if (loading) {
+    return (
+      <p className="flex items-center gap-2 text-sm text-slate-500">
+        <Spinner size={14} /> Loading field workers…
+      </p>
+    );
+  }
   if (error) return <p className="text-sm text-rose-600">{error}</p>;
 
   return (
@@ -139,8 +169,9 @@ export function FieldWorkersPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-60"
+              className="flex items-center gap-2 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-60"
             >
+              {submitting && <Spinner size={14} />}
               {submitting ? 'Creating…' : 'Create field worker'}
             </button>
           </div>
@@ -162,39 +193,45 @@ export function FieldWorkersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {workers.map((worker) => (
-                <tr key={worker.id}>
-                  <td className="px-4 py-3 text-slate-900">{worker.name}</td>
-                  <td className="px-4 py-3 text-slate-500">{worker.email}</td>
-                  <td className="px-4 py-3">
-                    <select
-                      value={worker.areaId || ''}
-                      onChange={(e) => handleAssignArea(worker, e.target.value)}
-                      className="rounded-md border border-slate-300 px-2 py-1 text-xs focus:border-indigo-500 focus:outline-none"
-                    >
-                      <option value="">Unassigned</option>
-                      {areas.map((area) => (
-                        <option key={area.id} value={area.id}>
-                          {area.name}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td className="px-4 py-3">
-                    <Badge tone={worker.isActive ? 'active' : 'inactive'}>
-                      {worker.isActive ? 'Active' : 'Inactive'}
-                    </Badge>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <button
-                      onClick={() => handleToggleStatus(worker)}
-                      className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
-                    >
-                      {worker.isActive ? 'Deactivate' : 'Activate'}
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {workers.map((worker) => {
+                const isPending = pendingWorkerIds.has(worker.id);
+                return (
+                  <tr key={worker.id} className={isPending ? 'opacity-60' : undefined}>
+                    <td className="px-4 py-3 text-slate-900">{worker.name}</td>
+                    <td className="px-4 py-3 text-slate-500">{worker.email}</td>
+                    <td className="px-4 py-3">
+                      <select
+                        value={worker.areaId || ''}
+                        onChange={(e) => handleAssignArea(worker, e.target.value)}
+                        disabled={isPending}
+                        className="rounded-md border border-slate-300 px-2 py-1 text-xs focus:border-indigo-500 focus:outline-none disabled:opacity-60"
+                      >
+                        <option value="">Unassigned</option>
+                        {areas.map((area) => (
+                          <option key={area.id} value={area.id}>
+                            {area.name}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="px-4 py-3">
+                      <Badge tone={worker.isActive ? 'active' : 'inactive'}>
+                        {worker.isActive ? 'Active' : 'Inactive'}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <button
+                        onClick={() => handleToggleStatus(worker)}
+                        disabled={isPending}
+                        className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-500 disabled:cursor-not-allowed disabled:text-slate-400"
+                      >
+                        {isPending && <Spinner size={12} />}
+                        {worker.isActive ? 'Deactivate' : 'Activate'}
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

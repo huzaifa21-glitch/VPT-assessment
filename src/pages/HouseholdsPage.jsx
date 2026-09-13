@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api/client';
 import { EmptyState } from '../components/EmptyState';
+import { Spinner } from '../components/Spinner';
 
 export function HouseholdsPage() {
   const [households, setHouseholds] = useState([]);
@@ -65,7 +66,9 @@ export function HouseholdsPage() {
       {error && <p className="text-sm text-rose-600">{error}</p>}
 
       {loading ? (
-        <p className="text-sm text-slate-500">Loading households…</p>
+        <p className="flex items-center gap-2 text-sm text-slate-500">
+          <Spinner size={14} /> Loading households…
+        </p>
       ) : households.length === 0 ? (
         <EmptyState title="No households found" description="Try a different search or area." />
       ) : (

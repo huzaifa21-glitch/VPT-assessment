@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { StatCard } from '../components/StatCard';
 import { EmptyState } from '../components/EmptyState';
+import { Spinner } from '../components/Spinner';
 
 export function DashboardPage() {
   const [stats, setStats] = useState(null);
@@ -28,7 +29,13 @@ export function DashboardPage() {
     };
   }, []);
 
-  if (loading) return <p className="text-sm text-slate-500">Loading dashboard…</p>;
+  if (loading) {
+    return (
+      <p className="flex items-center gap-2 text-sm text-slate-500">
+        <Spinner size={14} /> Loading dashboard…
+      </p>
+    );
+  }
   if (error) return <p className="text-sm text-rose-600">{error}</p>;
 
   return (

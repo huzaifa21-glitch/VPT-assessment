@@ -3,12 +3,14 @@ import { Link, useParams } from 'react-router-dom';
 import { api } from '../api/client';
 import { Badge } from '../components/Badge';
 import { EmptyState } from '../components/EmptyState';
+import { Spinner } from '../components/Spinner';
 
 export function HouseholdDetailPage() {
   const { id } = useParams();
   const [household, setHousehold] = useState(null);
   const [assessmentsByMember, setAssessmentsByMember] = useState({});
   const [expandedMemberId, setExpandedMemberId] = useState(null);
+  const [loadingMemberId, setLoadingMemberId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -26,13 +28,26 @@ export function HouseholdDetailPage() {
       return;
     }
     setExpandedMemberId(memberId);
-    if (!assessmentsByMember[memberId]) {
-      const data = await api.listAssessmentsByMember(memberId);
-      setAssessmentsByMember((prev) => ({ ...prev, [memberId]: data }));
+    // Guards against a rapid double-click re-fetching the same member's
+    // assessments a second time while the first request is still in flight.
+    if (!assessmentsByMember[memberId] && loadingMemberId !== memberId) {
+      setLoadingMemberId(memberId);
+      try {
+        const data = await api.listAssessmentsByMember(memberId);
+        setAssessmentsByMember((prev) => ({ ...prev, [memberId]: data }));
+      } finally {
+        setLoadingMemberId(null);
+      }
     }
   }
 
-  if (loading) return <p className="text-sm text-slate-500">Loading household…</p>;
+  if (loading) {
+    return (
+      <p className="flex items-center gap-2 text-sm text-slate-500">
+        <Spinner size={14} /> Loading household…
+      </p>
+    );
+  }
   if (error) return <p className="text-sm text-rose-600">{error}</p>;
   if (!household) return null;
 
@@ -68,14 +83,17 @@ export function HouseholdDetailPage() {
                       {member.age} yrs · {member.gender} · {member.relationship}
                     </p>
                   </div>
-                  <span className="text-sm text-indigo-600">
+                  <span className="flex items-center gap-1.5 text-sm text-indigo-600">
+                    {loadingMemberId === member.id && <Spinner size={12} />}
                     {expandedMemberId === member.id ? 'Hide assessments' : 'View assessments'}
                   </span>
                 </button>
                 {expandedMemberId === member.id && (
                   <div className="border-t border-slate-100 px-4 py-3">
                     {!assessmentsByMember[member.id] ? (
-                      <p className="text-sm text-slate-500">Loading…</p>
+                      <p className="flex items-center gap-2 text-sm text-slate-500">
+                        <Spinner size={14} /> Loading…
+                      </p>
                     ) : assessmentsByMember[member.id].length === 0 ? (
                       <EmptyState title="No assessments recorded yet" />
                     ) : (
