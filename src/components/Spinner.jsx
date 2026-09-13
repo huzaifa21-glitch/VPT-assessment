@@ -1,6 +1,4 @@
-// A small reusable spinner — used anywhere an action is in flight, so the
-// user gets visible feedback instead of a click that silently does nothing
-// for a moment (which reads as "broken" and invites a repeat click).
+
 export function Spinner({ size = 16, className = '' }) {
   return (
     <svg

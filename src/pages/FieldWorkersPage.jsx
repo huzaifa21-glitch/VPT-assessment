@@ -15,11 +15,7 @@ export function FieldWorkersPage() {
   const [form, setForm] = useState(emptyForm);
   const [formError, setFormError] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  // Tracks which worker rows currently have an update in flight (status
-  // toggle or area reassignment), so each row can show its own spinner and
-  // disable itself — without this, a slow request looks identical to a
-  // broken click, which invites the user to click again and fire a second
-  // (possibly conflicting) request.
+ 
   const [pendingWorkerIds, setPendingWorkerIds] = useState(() => new Set());
 
   async function load() {

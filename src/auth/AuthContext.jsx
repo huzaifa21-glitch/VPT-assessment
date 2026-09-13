@@ -7,9 +7,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => getStoredUser());
   const [initializing, setInitializing] = useState(true);
 
-  // On first load, if we have a token, re-fetch the current user to confirm
-  // the session is still valid (and pick up any role/area changes made
-  // elsewhere) rather than trusting whatever was cached in localStorage.
+ 
   useEffect(() => {
     const { accessToken } = getTokens();
     if (!accessToken) {
@@ -44,8 +42,7 @@ export function AuthProvider({ children }) {
     try {
       if (refreshToken) await api.logout(refreshToken);
     } catch {
-      // Ignore — we clear the local session regardless of whether the
-      // server call succeeded, so the user is never stuck logged in.
+      
     }
     clearSession();
     setUser(null);

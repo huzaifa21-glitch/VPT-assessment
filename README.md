@@ -1,41 +1,17 @@
 # Community Health Field Survey — Web (Super Admin)
 
 React + Vite + JavaScript admin console for the Super Admin role. Talks to the backend's
-`/api/v1` REST API. Kept deliberately simple — this app is a thin layer over the backend;
-almost no business logic lives here.
+`/api/v1` REST API.
 
 ## Stack
 
-- **React 19 + Vite** — plain JavaScript (`.jsx`, no TypeScript).
-- **Tailwind CSS v4** (via `@tailwindcss/vite` — no `tailwind.config.js` or `postcss.config.js`
+- **React 19 + Vite** — plain JavaScript.
+- **Tailwind CSS v4** (via `@tailwindcss/vite` 
   needed for this setup; Tailwind is wired in through `vite.config.js` and a single
   `@import "tailwindcss";` in `src/index.css`).
 - **react-router-dom** — client-side routing.
 - No other libraries — API calls use the browser's built-in `fetch`, not axios, to keep the
   dependency list small.
-
-## Project layout
-
-```
-src/
-  api/client.js            Single fetch wrapper for every backend call (auth header injection,
-                            silent refresh-on-401, JSON handling, error messages)
-  auth/
-    AuthContext.jsx         Holds the logged-in user + login()/logout(), backed by localStorage
-    ProtectedRoute.jsx       Redirects to /login if there's no session
-  components/
-    Layout.jsx               Sidebar + page frame (used by every page except Login)
-    StatCard.jsx, Badge.jsx, EmptyState.jsx    Small reusable pieces
-  pages/
-    LoginPage.jsx
-    DashboardPage.jsx        Stats + recent activity
-    FieldWorkersPage.jsx     List, create, activate/deactivate, assign area
-    HouseholdsPage.jsx       List, search, filter by area
-    HouseholdDetailPage.jsx  Household info, members, per-member assessments
-    NotFoundPage.jsx
-  App.jsx                   Route definitions
-  main.jsx                  Entry point (wraps App in AuthProvider + BrowserRouter)
-```
 
 ## How auth works here
 
@@ -67,25 +43,7 @@ npm run dev
 # → http://localhost:5173
 ```
 
-Log in with the seeded Super Admin credentials from the backend (`admin@healthsurvey.local` /
-`ChangeMe123!` unless you changed them).
+Log in with the seeded Super Admin credentials from the backend (`admin@local.com` /
+`Admin1234`).
 
-```bash
-npm run build      # production build → dist/
-npm run preview    # serve the production build locally
-```
 
-## What's covered vs. what's intentionally left out
-
-Covered (matches the assignment's web-app requirements): login, dashboard stats, field worker
-list/create/activate/deactivate/area-assignment, household list/search/filter, household
-members, and per-member health assessments.
-
-Left out on purpose, since the brief says UI polish isn't the focus:
-- No toast notifications — errors show as inline text.
-- No client-side form validation beyond HTML5 `required`/`minLength` (the backend validates
-  everything properly with Zod; this UI trusts it and just surfaces the error message back).
-- No pagination controls on the households/field-workers tables yet, even though the backend
-  API supports `page`/`pageSize` — fine at the data volumes this assessment seeds/tests with.
-- No household creation from the web app — the assignment only asks the admin to *view* households,
-  members, and assessments (creation is the field worker's job via mobile).

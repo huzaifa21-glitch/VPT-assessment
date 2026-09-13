@@ -47,10 +47,7 @@ async function refreshAccessToken() {
   return data.accessToken;
 }
 
-// Core request helper — attaches the bearer token, and if a request comes
-// back 401 (expired access token), tries ONE silent refresh-and-retry before
-// giving up and forcing a fresh login. Every api.* call below goes through this,
-// so no page needs to think about token refresh itself.
+
 async function request(path, { method = 'GET', body, skipAuth = false, _retried = false } = {}) {
   const { accessToken } = getTokens();
   const headers = { 'Content-Type': 'application/json' };
