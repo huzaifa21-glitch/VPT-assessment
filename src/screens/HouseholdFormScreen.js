@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { householdsRepo } from '../db/householdsRepo';
 import { useAuth } from '../auth/AuthContext';
 import { useSyncStatus } from '../sync/SyncStatusContext';
+import { FormScreen } from '../components/FormScreen';
 import { TextField } from '../components/TextField';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { Loader } from '../components/Loader';
@@ -63,40 +64,36 @@ export function HouseholdFormScreen({ route, navigation }) {
   if (loading) return <Loader fullscreen label="Loading…" />;
 
   return (
-    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <TextField
-          label="Household code"
-          value={householdCode}
-          onChangeText={setHouseholdCode}
-          placeholder="HH-0002"
-          editable={!isEditing}
-          style={isEditing && styles.readOnly}
-        />
-        <TextField
-          label="Address"
-          value={address}
-          onChangeText={setAddress}
-          placeholder="14 Sample Street"
-          multiline
-        />
+    <FormScreen>
+      <TextField
+        label="Household code"
+        value={householdCode}
+        onChangeText={setHouseholdCode}
+        placeholder="HH-0002"
+        editable={!isEditing}
+        style={isEditing && styles.readOnly}
+      />
+      <TextField
+        label="Address"
+        value={address}
+        onChangeText={setAddress}
+        placeholder="14 Sample Street"
+        multiline
+      />
 
-        <View style={styles.areaBox}>
-          <Text style={styles.areaLabel}>Area</Text>
-          <Text style={styles.areaValue}>{user?.area?.name || 'Unassigned'}</Text>
-        </View>
+      <View style={styles.areaBox}>
+        <Text style={styles.areaLabel}>Area</Text>
+        <Text style={styles.areaValue}>{user?.area?.name || 'Unassigned'}</Text>
+      </View>
 
-        {error ? <Text style={styles.error}>{error}</Text> : null}
+      {error ? <Text style={styles.error}>{error}</Text> : null}
 
-        <PrimaryButton title={saving ? 'Saving…' : 'Save household'} onPress={handleSave} loading={saving} />
-      </ScrollView>
-    </KeyboardAvoidingView>
+      <PrimaryButton title={saving ? 'Saving…' : 'Save household'} onPress={handleSave} loading={saving} />
+    </FormScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: colors.bg },
-  container: { padding: 16 },
   readOnly: { backgroundColor: '#f1f5f9', color: colors.textMuted },
   areaBox: { marginBottom: 20 },
   areaLabel: { fontSize: 13, fontWeight: '600', color: colors.textPrimary, marginBottom: 4 },

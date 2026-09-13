@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
+import { FormScreen } from '../components/FormScreen';
 import { membersRepo } from '../db/membersRepo';
 import { useSyncStatus } from '../sync/SyncStatusContext';
 import { TextField } from '../components/TextField';
@@ -73,23 +74,19 @@ export function MemberFormScreen({ route, navigation }) {
   if (loading) return <Loader fullscreen label="Loading…" />;
 
   return (
-    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <TextField label="Name" value={name} onChangeText={setName} placeholder="Jane Doe" />
-        <TextField label="Age" value={age} onChangeText={setAge} keyboardType="number-pad" placeholder="34" />
-        <ChipSelect label="Gender" options={GENDER_OPTIONS} value={gender} onChange={setGender} />
-        <ChipSelect label="Relationship to household" options={RELATIONSHIP_OPTIONS} value={relationship} onChange={setRelationship} />
+    <FormScreen>
+      <TextField label="Name" value={name} onChangeText={setName} placeholder="Jane Doe" />
+      <TextField label="Age" value={age} onChangeText={setAge} keyboardType="number-pad" placeholder="34" />
+      <ChipSelect label="Gender" options={GENDER_OPTIONS} value={gender} onChange={setGender} />
+      <ChipSelect label="Relationship to household" options={RELATIONSHIP_OPTIONS} value={relationship} onChange={setRelationship} />
 
-        {error ? <Text style={styles.error}>{error}</Text> : null}
+      {error ? <Text style={styles.error}>{error}</Text> : null}
 
-        <PrimaryButton title={saving ? 'Saving…' : 'Save member'} onPress={handleSave} loading={saving} />
-      </ScrollView>
-    </KeyboardAvoidingView>
+      <PrimaryButton title={saving ? 'Saving…' : 'Save member'} onPress={handleSave} loading={saving} />
+    </FormScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: colors.bg },
-  container: { padding: 16 },
   error: { color: colors.danger, fontSize: 13, marginBottom: 12 },
 });

@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { householdsRepo } from '../db/householdsRepo';
@@ -13,7 +13,7 @@ import { colors } from '../components/theme';
 
 export function HouseholdDetailScreen({ route, navigation }) {
   const { householdId } = route.params;
-  const { triggerSync, refreshCounts } = useSyncStatus();
+  const { triggerSync, refreshCounts, lastSyncAt } = useSyncStatus();
   const [household, setHousehold] = useState(null);
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -33,6 +33,13 @@ export function HouseholdDetailScreen({ route, navigation }) {
       load();
     }, [load]),
   );
+
+  // Also reload whenever a sync completes — an edit's "Pending" badge should
+  // flip to "Synced" as soon as the push actually succeeds, not only when
+  // the user leaves and returns to this screen.
+  useEffect(() => {
+    load();
+  }, [lastSyncAt]);
 
   async function handleDelete() {
     Alert.alert('Delete household', 'This will remove the household once it syncs. Continue?', [

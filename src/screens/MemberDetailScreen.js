@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { membersRepo } from '../db/membersRepo';
@@ -13,7 +13,7 @@ import { colors } from '../components/theme';
 
 export function MemberDetailScreen({ route, navigation }) {
   const { memberId } = route.params;
-  const { triggerSync, refreshCounts } = useSyncStatus();
+  const { triggerSync, refreshCounts, lastSyncAt } = useSyncStatus();
   const [member, setMember] = useState(null);
   const [assessments, setAssessments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -30,6 +30,12 @@ export function MemberDetailScreen({ route, navigation }) {
       load();
     }, [load]),
   );
+
+  // Also reload whenever a sync completes — see HouseholdDetailScreen for
+  // why focus-based reloading alone misses this.
+  useEffect(() => {
+    load();
+  }, [lastSyncAt]);
 
   async function handleDelete() {
     Alert.alert('Delete member', 'This will remove the member once it syncs. Continue?', [

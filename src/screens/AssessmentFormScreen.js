@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { StyleSheet, Switch, Text, View } from 'react-native';
 import { assessmentsRepo } from '../db/assessmentsRepo';
 import { useSyncStatus } from '../sync/SyncStatusContext';
+import { FormScreen } from '../components/FormScreen';
 import { TextField } from '../components/TextField';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { Loader } from '../components/Loader';
@@ -86,62 +87,58 @@ export function AssessmentFormScreen({ route, navigation }) {
   if (loading) return <Loader fullscreen label="Loading…" />;
 
   return (
-    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <TextField
-          label="Temperature (°C)"
-          value={temperatureC}
-          onChangeText={setTemperatureC}
-          keyboardType="decimal-pad"
-          placeholder="37.5"
-        />
+    <FormScreen>
+      <TextField
+        label="Temperature (°C)"
+        value={temperatureC}
+        onChangeText={setTemperatureC}
+        keyboardType="decimal-pad"
+        placeholder="37.5"
+      />
 
-        <ToggleRow label="Fever" value={hasFever} onValueChange={setHasFever} />
-        <ToggleRow label="Cough" value={hasCough} onValueChange={setHasCough} />
-        <ToggleRow label="Breathing difficulty" value={hasBreathingDifficulty} onValueChange={setHasBreathingDifficulty} />
+      <ToggleRow label="Fever" value={hasFever} onValueChange={setHasFever} />
+      <ToggleRow label="Cough" value={hasCough} onValueChange={setHasCough} />
+      <ToggleRow label="Breathing difficulty" value={hasBreathingDifficulty} onValueChange={setHasBreathingDifficulty} />
 
-        <View style={styles.row}>
-          <View style={styles.halfInput}>
-            <TextField
-              label="BP systolic"
-              value={bpSystolic}
-              onChangeText={setBpSystolic}
-              keyboardType="number-pad"
-              placeholder="120"
-            />
-          </View>
-          <View style={styles.halfInput}>
-            <TextField
-              label="BP diastolic"
-              value={bpDiastolic}
-              onChangeText={setBpDiastolic}
-              keyboardType="number-pad"
-              placeholder="80"
-            />
-          </View>
+      <View style={styles.row}>
+        <View style={styles.halfInput}>
+          <TextField
+            label="BP systolic"
+            value={bpSystolic}
+            onChangeText={setBpSystolic}
+            keyboardType="number-pad"
+            placeholder="120"
+          />
         </View>
+        <View style={styles.halfInput}>
+          <TextField
+            label="BP diastolic"
+            value={bpDiastolic}
+            onChangeText={setBpDiastolic}
+            keyboardType="number-pad"
+            placeholder="80"
+          />
+        </View>
+      </View>
 
-        <TextField label="Notes" value={notes} onChangeText={setNotes} multiline placeholder="Optional notes" />
+      <TextField label="Notes" value={notes} onChangeText={setNotes} multiline placeholder="Optional notes" />
 
-        <ToggleRow label="Flag for review" value={flagForReview} onValueChange={setFlagForReview} />
+      <ToggleRow label="Flag for review" value={flagForReview} onValueChange={setFlagForReview} />
 
-        {willBeUrgent && (
-          <View style={styles.urgentBanner}>
-            <Text style={styles.urgentText}>This will be marked urgent once synced.</Text>
-          </View>
-        )}
+      {willBeUrgent && (
+        <View style={styles.urgentBanner}>
+          <Text style={styles.urgentText}>This will be marked urgent once synced.</Text>
+        </View>
+      )}
 
-        {error ? <Text style={styles.error}>{error}</Text> : null}
+      {error ? <Text style={styles.error}>{error}</Text> : null}
 
-        <PrimaryButton title={saving ? 'Saving…' : 'Save assessment'} onPress={handleSave} loading={saving} />
-      </ScrollView>
-    </KeyboardAvoidingView>
+      <PrimaryButton title={saving ? 'Saving…' : 'Save assessment'} onPress={handleSave} loading={saving} />
+    </FormScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: colors.bg },
-  container: { padding: 16 },
   toggleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',

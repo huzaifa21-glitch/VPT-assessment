@@ -85,6 +85,7 @@ export function HouseholdListScreen({ navigation }) {
           <View style={styles.identityText}>
             <Text style={styles.userName} numberOfLines={1}>
               {user?.name || 'Field worker'}
+               {user?.email || 'Field worker'}
             </Text>
             <Text style={styles.areaName} numberOfLines={1}>
               {user?.area?.name || 'Unassigned area'}
