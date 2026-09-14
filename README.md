@@ -1,4 +1,4 @@
-# Community Health Field Survey — Mobile (Field Worker)
+# VPT Assignment — Mobile (Field Worker)
 
 React Native + Expo app for field workers visiting households, built to keep working with no
 internet connection. Plain JavaScript, Stack Navigation, minimal dependencies.
@@ -8,10 +8,9 @@ internet connection. Plain JavaScript, Stack Navigation, minimal dependencies.
 - **Expo (managed workflow)** + React Native, plain `.js` files.
 - **`@react-navigation/native-stack`** — Stack Navigation.
 - **`expo-sqlite`** — local persistent storage.
-- **`expo-secure-store`** — JWT tokens, backed by the platform Keychain (iOS) / Keystore (Android).
 - **`@react-native-community/netinfo`** — detects connectivity changes to trigger sync automatically.
 - No UI kit, no state-management library, no axios — plain `fetch` and React's built-in
-  `useState`/`useContext`, kept deliberately minimal.
+  `useState`/`useContext`.
 
 
 
@@ -27,7 +26,7 @@ plain storage — meaningfully harder for another app or a compromised JS bundle
 ## Running it
 
 You need the backend running and reachable from wherever you run this app (emulator, simulator,
-or a physical phone) — see connectivity notes below, this trips people up more than anything else.
+or a physical phone) — see connectivity notes below.
 
 ```bash
 npm install
@@ -54,5 +53,4 @@ your laptop from the emulator's/phone's point of view:
 
 ### Seeded login
 
-Use the field worker seeded by the backend: `test1@gmail.com` / `Pass1234`
-(from the backend's `npm run seed`).
+Use the field worker seeded by the backend: `test1@gmail.com` / `Pass1234`.
