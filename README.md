@@ -1,4 +1,4 @@
-# Community Health Field Survey — Web (Super Admin)
+# VPT Assignment— Web (Super Admin)
 
 React + Vite + JavaScript admin console for the Super Admin role. Talks to the backend's
 `/api/v1` REST API.
@@ -25,9 +25,6 @@ React + Vite + JavaScript admin console for the Super Admin role. Talks to the b
 - This app only accepts `SUPER_ADMIN` logins — if a field worker's credentials are used, the
   login is rejected client-side with a clear message (the backend would reject their token on
   every admin endpoint anyway; this just gives a nicer message before that happens).
-- Storing tokens in `localStorage` is the simple choice for this assessment; it's readable by
-  any script on the page (XSS risk) — an httpOnly cookie would be more robust in production, at
-  the cost of more backend/CORS setup. Noted here rather than silently picked.
 
 ## Setup
 
