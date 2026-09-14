@@ -103,7 +103,7 @@ Printed to the console by `npm run seed`, and also documented here:
 | Role         | Email                              | Password          |
 |--------------|-------------------------------------|--------------------|
 | Super Admin  | `admin@local.com`                   | `Admin1234`        |
-| Field Worker | `test1@gmail.com`                   | `Pass1234!`        |
+| Field Worker | `test1@gmail.com`                   | `Pass1234`        |
 
 (Override the super admin's via `SEED_SUPER_ADMIN_EMAIL` / `SEED_SUPER_ADMIN_PASSWORD` in `.env`.)
 
