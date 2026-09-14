@@ -20,8 +20,8 @@ const env = {
   jwtRefreshSecret: required('JWT_REFRESH_SECRET'),
   jwtRefreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d',
 
-  seedSuperAdminEmail: process.env.SEED_SUPER_ADMIN_EMAIL || 'admin@healthsurvey.local',
-  seedSuperAdminPassword: process.env.SEED_SUPER_ADMIN_PASSWORD || 'ChangeMe123!',
+  seedSuperAdminEmail: process.env.SEED_SUPER_ADMIN_EMAIL || 'admin@local.com',
+  seedSuperAdminPassword: process.env.SEED_SUPER_ADMIN_PASSWORD || 'Admin1234',
 };
 
 module.exports = { env };
